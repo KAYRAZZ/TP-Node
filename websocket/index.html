@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebSocket Chat</title>
+</head>
+
+<body>
+    <h1>WebSocket Chat</h1>
+    <input type="text" id="username" placeholder="Enter your username...">
+    <button id="setUsername" onclick="setUsername()">Set Username</button>
+    <ul id="chat"></ul>
+    <input type="text" id="message" placeholder="Type a message..." disabled>
+    <button id="send" onclick="send()" disabled>Send</button>
+    <script>
+        const ws = new WebSocket('ws://localhost:3000');
+        let username = null;
+
+        // Écoute l'ouverture de la connexion
+        ws.onopen = () => {
+            console.log('Connecté au serveur WebSocket');
+        };
+
+        // Écoute les messages du serveur
+        ws.onmessage = (event) => {
+            const chat = document.getElementById('chat');
+            const li = document.createElement('li');
+            li.textContent = event.data;
+            chat.appendChild(li);
+        };
+
+        const setUsername = () => {
+            const usernameInput = document.getElementById('username');
+            username = usernameInput.value.trim();
+            if (username) {
+                usernameInput.disabled = true;
+                document.getElementById('setUsername').disabled = true;
+                document.getElementById('message').disabled = false;
+                document.getElementById('send').disabled = false;
+                ws.send(JSON.stringify({ type: 'setUsername', username }));
+            } else {
+                alert('Veuillez entrer un nom d\'utilisateur.');
+            }
+        };
+
+        const send = () => {
+            const messageInput = document.getElementById('message');
+            const message = messageInput.value.trim();
+            if (message && username) {
+                ws.send(JSON.stringify({ type: 'message', username, message }));
+                messageInput.value = '';
+            }
+        };
+
+        // Écoute la fermeture de la connexion
+        ws.onclose = () => {
+            console.log('Déconnecté du serveur WebSocket');
+        };
+    </script>
+</body>
+
+</html>
